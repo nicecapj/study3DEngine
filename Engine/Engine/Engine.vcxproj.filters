@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Engine">
+      <UniqueIdentifier>{7ceb533a-91b5-4387-a9c7-ffd4f7a34582}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\DirectX">
+      <UniqueIdentifier>{aed7180c-d2e7-45ad-9467-691674a79a5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\OpenGL">
+      <UniqueIdentifier>{9a60c80c-ee44-41ef-a95d-1ceb5cc55efc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -30,6 +39,18 @@
     <ClInclude Include="Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OpenGLRHI.h">
+      <Filter>Engine\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="RHI.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="S3DEngine.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectxRHI.h">
+      <Filter>Engine\DirectX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -37,6 +58,18 @@
     </ClCompile>
     <ClCompile Include="Engine.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLRHI.cpp">
+      <Filter>Engine\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="RHI.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="S3DEngine.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectxRHI.cpp">
+      <Filter>Engine\DirectX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "Engine.h"
+#include "S3DEngine.h"
 
 #define MAX_LOADSTRING 100
 
@@ -17,6 +18,8 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
+
+S3DEngine* gEngine = nullptr;
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -42,15 +45,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
+
     // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
+	ZeroMemory(&msg, sizeof(msg));
+	while (msg.message != WM_QUIT)
+	{
+		if (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE)) // º¯°æ
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else {
+			gEngine->Process();
+		}
+	}
+
+	delete gEngine;
+	gEngine = nullptr;
 
     return (int) msg.wParam;
 }
@@ -125,6 +136,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+		case WM_CREATE:
+		{
+			gEngine = new S3DEngine(S3DEngine::OPENGL);
+			if (!gEngine)
+				return FALSE;
+			
+			if (!gEngine->Initialize(hWnd))
+				return FALSE;			
+		}
+		break;
+
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
@@ -147,9 +169,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
             // TODO: Add any drawing code that uses hdc here...
+
+			//TextOut(hdc, 10, 10, L"hello", strlen("hello"));
+
             EndPaint(hWnd, &ps);
         }
         break;
+	case WM_SIZE:
+		{
+			if (gEngine) {
+				gEngine->Restore();
+			}
+		}
+		break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
