@@ -1,16 +1,13 @@
-# study3DEngine
+# Study3DEngine(For only study...it has bad architecture)
 
-using DirectX9
-		case WM_CREATE:
-		{			
-			gEngine = new S3DEngine(S3DEngine::DIRECTX);
+using DirectX9		
+			S3DEngine study3DEngine = new S3DEngine(S3DEngine::DIRECTX);
 ![screenshot of Directx renderer](dxScreenshot.png?raw=true)		
 		
 		
 using OPENGL 2.0
-		case WM_CREATE:
-		{			
-			gEngine = new S3DEngine(S3DEngine::OPENGL);
+		
+			S3DEngine study3DEngine = new S3DEngine(S3DEngine::OPENGL);
 ![screenshot of opengl Renderer](openglScreenshot.png?raw=true)
 			
 
