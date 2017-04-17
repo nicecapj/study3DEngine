@@ -1,4 +1,8 @@
-# Study3DEngine(For only study...it has bad architecture)
+# Study3DEngine
+
+For only study...it has bad architecture
+
+
 
 using DirectX9		
 			S3DEngine study3DEngine = new S3DEngine(S3DEngine::DIRECTX);
