@@ -69,6 +69,7 @@ bool DirectXRHI::Render()
 
 	pD3DDevice->BeginScene(); // ·»´õ ½ÃÀÛ
 	
+	SetupLights();
 	SetupMatrices();
 	RenderGeometry();
 
@@ -89,25 +90,26 @@ bool DirectXRHI::Restore()
 
 bool DirectXRHI::InitializeGeometry()
 {
-	if (FAILED(pD3DDevice->CreateVertexBuffer(3 * sizeof(CUSTOM_VERTEX), 0, D3DFVF_CUSTOMVERTEX, D3DPOOL_DEFAULT, &pVB, NULL)))
+	if (FAILED(pD3DDevice->CreateVertexBuffer(50 * 2 * sizeof(CUSTOMVERTEX), 0, D3DFVF_CUSTOMVERTEX, D3DPOOL_DEFAULT, &pVB, NULL)))
 	{
 		return false;
 	}
 
-	CUSTOM_VERTEX vertics[] =
-	{
-		{150.f, 50.f, 0.5f, 1.0f, D3DCOLOR_RGBA(0xff, 0x00, 0x00, 0xff) },
-		{250.f, 250.f, 0.5f, 1.0f, D3DCOLOR_RGBA(0xff, 0x00, 0x00, 0xff) },
-		{50.f, 250.f, 0.5f, 1.0f, D3DCOLOR_RGBA(0xff, 0x00, 0x00, 0xff) },
-	};
-
-	void* pVertics = nullptr;
-
-	if (FAILED(pVB->Lock(0, sizeof(vertics), &pVertics, 0)))
+	CUSTOMVERTEX* pVertices;
+	if (FAILED(pVB->Lock(0, 0, (void**)&pVertices, 0)))
 		return false;
 
-	memcpy(pVertics, vertics, sizeof(vertics));
-	memcpy(pVertics, &vertics[0], sizeof(vertics));
+	for (DWORD i = 0; i < 50; i++)
+	{
+		FLOAT theta = (2 * D3DX_PI * i) / (50 - 1);
+		pVertices[2 * i + 0].Position = D3DXVECTOR3(sinf(theta), -1.0f, cosf(theta));
+		pVertices[2 * i + 0].Normal = D3DXVECTOR3(sinf(theta), 0.0f, cosf(theta));
+		pVertices[2 * i + 0].Color = D3DCOLOR_RGBA(0xff, 0x00, 0x00, 0xff);
+
+		pVertices[2 * i + 1].Position = D3DXVECTOR3(sinf(theta), 1.0f, cosf(theta));
+		pVertices[2 * i + 1].Normal = D3DXVECTOR3(sinf(theta), 0.0f, cosf(theta));
+		pVertices[2 * i + 1].Color = D3DCOLOR_RGBA(0x00, 0xff, 0x00, 0xff);
+	}
 
 	pVB->Unlock();
 
@@ -116,7 +118,7 @@ bool DirectXRHI::InitializeGeometry()
 
 void DirectXRHI::RenderGeometry()
 {
-	pD3DDevice->SetStreamSource(0, pVB, 0, sizeof(CUSTOM_VERTEX));
+	pD3DDevice->SetStreamSource(0, pVB, 0, sizeof(CUSTOMVERTEX));
 	pD3DDevice->SetFVF(D3DFVF_CUSTOMVERTEX);
 	pD3DDevice->DrawPrimitive(D3DPRIMITIVETYPE::D3DPT_TRIANGLELIST, 0, 1);
 }
@@ -161,4 +163,40 @@ void DirectXRHI::SetupMatrices()
 	D3DXMATRIXA16 matProj;
 	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, 1.0f, 1.0f, 100.0f);
 	pD3DDevice->SetTransform(D3DTS_PROJECTION, &matProj);
+}
+
+void DirectXRHI::SetupLights()
+{
+	// Set up a material. The material here just has the diffuse and ambient
+	// colors set to yellow. Note that only one material can be used at a time.
+	D3DMATERIAL9 mtrl;
+	ZeroMemory(&mtrl, sizeof(D3DMATERIAL9));
+	mtrl.Diffuse.r = mtrl.Ambient.r = 1.0f;
+	mtrl.Diffuse.g = mtrl.Ambient.g = 1.0f;
+	mtrl.Diffuse.b = mtrl.Ambient.b = 0.0f;
+	mtrl.Diffuse.a = mtrl.Ambient.a = 1.0f;
+	pD3DDevice->SetMaterial(&mtrl);
+
+	// Set up a white, directional light, with an oscillating direction.
+	// Note that many lights may be active at a time (but each one slows down
+	// the rendering of our scene). However, here we are just using one. Also,
+	// we need to set the D3DRS_LIGHTING renderstate to enable lighting
+	D3DXVECTOR3 vecDir;
+	D3DLIGHT9 light;
+	ZeroMemory(&light, sizeof(D3DLIGHT9));
+	light.Type = D3DLIGHT_DIRECTIONAL;
+	light.Diffuse.r = 1.0f;
+	light.Diffuse.g = 1.0f;
+	light.Diffuse.b = 1.0f;
+	vecDir = D3DXVECTOR3(cosf(timeGetTime() / 350.0f),
+		1.0f,
+		sinf(timeGetTime() / 350.0f));
+	D3DXVec3Normalize((D3DXVECTOR3*)&light.Direction, &vecDir);
+	light.Range = 1000.0f;
+	pD3DDevice->SetLight(0, &light);
+	pD3DDevice->LightEnable(0, TRUE);
+	pD3DDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
+
+	// Finally, turn on some ambient light.
+	pD3DDevice->SetRenderState(D3DRS_AMBIENT, 0x00202020);
 }
