@@ -16,25 +16,43 @@ OpenGLRHI::OpenGLRHI()
 
 OpenGLRHI::~OpenGLRHI()
 {
-	wglMakeCurrent(hDC_, nullptr);
-	wglDeleteContext(hRC_);
+	//wglMakeCurrent(hDC_, nullptr);
+	//wglDeleteContext(hRC_);
 }
 
 bool OpenGLRHI::Initialize(HWND hwnd)
 {
-	hDC_ = GetDC(hwnd);
-	if (hDC_)
-	{
-		hRC_ = wglCreateContext(hDC_);
-		if (hRC_)
-		{
-			wglMakeCurrent(hDC_, hRC_);
+	//hDC_ = GetDC(hwnd);
+	//if (hDC_)
+	//{
+	//	hRC_ = wglCreateContext(hDC_);
+	//	if (hRC_)
+	//	{
+	//		wglMakeCurrent(hDC_, hRC_);
 
-			SetPixelFormat();
-		}
-	}
+	//		SetPixelFormat();
+	//	}
+	//}
+
+	glutCreateWindow("study opengl engine");
+	glutDisplayFunc(OpenGLRHI::TestGlutRender);
+	glutMainLoop();
 
 	return true;
+}
+
+void OpenGLRHI::TestGlutRender()
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glBegin(GL_TRIANGLES);
+
+	glVertex2f(0.0, 0.5);
+	glVertex2f(-0.5, -0.5);
+	glVertex2f(0.5, -0.5);
+
+	glEnd();
+	glFlush();
 }
 
 void OpenGLRHI::Framemove(float delta)
@@ -56,9 +74,10 @@ bool OpenGLRHI::Render()
 
 		glEnd();
 		glFlush();
-	}
 
-	return true;
+		return true;
+	}
+	return false;
 }
 
 void OpenGLRHI::SetPixelFormat()

@@ -13,6 +13,8 @@ public:
 	virtual bool Render() override;
 	virtual bool Restore() override;
 
+	
+	static void TestGlutRender();
 	void SetPixelFormat();
 	
 
