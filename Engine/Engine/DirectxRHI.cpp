@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "DirectxRHI.h"
+#include <mmsystem.h>
 #include <stdexcept>
 
 
@@ -12,8 +13,8 @@ DirectXRHI::~DirectXRHI()
 {
 	ReleaseGeometry();
 
-	pD3DDev->Release();
-	pD3DDev = nullptr;
+	pD3DDevice->Release();
+	pD3DDevice = nullptr;
 	pD3D->Release();
 	pD3D = nullptr;
 }
@@ -38,8 +39,17 @@ bool DirectXRHI::Initialize(HWND hWnd)
 
 	if (FAILED(pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd,
 		D3DCREATE_SOFTWARE_VERTEXPROCESSING,
-		&d3dpp, &pD3DDev))) 
+		&d3dpp, &pD3DDevice))) 
 		return false;
+
+	// Turn off culling, so we see the front and back of the triangle
+	pD3DDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+
+	// Turn off D3D lighting, since we are providing our own vertex colors
+	pD3DDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+
+	// Turn on the zbuffer
+	pD3DDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
 
 	if (!InitializeGeometry())
 		return false;
@@ -55,16 +65,17 @@ void DirectXRHI::Framemove(float delta)
 bool DirectXRHI::Render()
 {
 	// 배경을 검게칠한다
-	pD3DDev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+	pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 
-	pD3DDev->BeginScene(); // 렌더 시작
-
+	pD3DDevice->BeginScene(); // 렌더 시작
+	
+	SetupMatrices();
 	RenderGeometry();
 
-	pD3DDev->EndScene(); // 렌더 종료
+	pD3DDevice->EndScene(); // 렌더 종료
 
 	// 출력한 내용을 실제 윈도우에 나타나게 한다
-	if (FAILED(pD3DDev->Present(NULL, NULL, NULL, NULL)))
+	if (FAILED(pD3DDevice->Present(NULL, NULL, NULL, NULL)))
 		return false;
 
 	return true;
@@ -78,7 +89,7 @@ bool DirectXRHI::Restore()
 
 bool DirectXRHI::InitializeGeometry()
 {
-	if (FAILED(pD3DDev->CreateVertexBuffer(3 * sizeof(CUSTOM_VERTEX), 0, D3DFVF_CUSTOMVERTEX, D3DPOOL_DEFAULT, &pVB, NULL)))
+	if (FAILED(pD3DDevice->CreateVertexBuffer(3 * sizeof(CUSTOM_VERTEX), 0, D3DFVF_CUSTOMVERTEX, D3DPOOL_DEFAULT, &pVB, NULL)))
 	{
 		return false;
 	}
@@ -105,13 +116,49 @@ bool DirectXRHI::InitializeGeometry()
 
 void DirectXRHI::RenderGeometry()
 {
-	pD3DDev->SetStreamSource(0, pVB, 0, sizeof(CUSTOM_VERTEX));
-	pD3DDev->SetFVF(D3DFVF_CUSTOMVERTEX);
-	pD3DDev->DrawPrimitive(D3DPRIMITIVETYPE::D3DPT_TRIANGLELIST, 0, 1);
+	pD3DDevice->SetStreamSource(0, pVB, 0, sizeof(CUSTOM_VERTEX));
+	pD3DDevice->SetFVF(D3DFVF_CUSTOMVERTEX);
+	pD3DDevice->DrawPrimitive(D3DPRIMITIVETYPE::D3DPT_TRIANGLELIST, 0, 1);
 }
 
 void DirectXRHI::ReleaseGeometry()
 {
 	pVB->Release();
 	pVB = nullptr;
+}
+
+void DirectXRHI::SetupMatrices()
+{
+	// For our world matrix, we will just rotate the object about the y-axis.
+	D3DXMATRIXA16 matWorld;
+
+	// Set up the rotation matrix to generate 1 full rotation (2*PI radians) 
+	// every 1000 ms. To avoid the loss of precision inherent in very high 
+	// floating point numbers, the system time is modulated by the rotation 
+	// period before conversion to a radian angle.
+	UINT iTime = timeGetTime() % 1000;
+	FLOAT fAngle = iTime * (2.0f * D3DX_PI) / 1000.0f;
+	D3DXMatrixRotationY(&matWorld, fAngle);
+	pD3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
+
+	// Set up our view matrix. A view matrix can be defined given an eye point,
+	// a point to lookat, and a direction for which way is up. Here, we set the
+	// eye five units back along the z-axis and up three units, look at the
+	// origin, and define "up" to be in the y-direction.
+	D3DXVECTOR3 vEyePt(0.0f, 3.0f, -5.0f);
+	D3DXVECTOR3 vLookatPt(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 vUpVec(0.0f, 1.0f, 0.0f);
+	D3DXMATRIXA16 matView;
+	D3DXMatrixLookAtLH(&matView, &vEyePt, &vLookatPt, &vUpVec);
+	pD3DDevice->SetTransform(D3DTS_VIEW, &matView);
+
+	// For the projection matrix, we set up a perspective transform (which
+	// transforms geometry from 3D view space to 2D viewport space, with
+	// a perspective divide making objects smaller in the distance). To build
+	// a perpsective transform, we need the field of view (1/4 pi is common),
+	// the aspect ratio, and the near and far clipping planes (which define at
+	// what distances geometry should be no longer be rendered).
+	D3DXMATRIXA16 matProj;
+	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, 1.0f, 1.0f, 100.0f);
+	pD3DDevice->SetTransform(D3DTS_PROJECTION, &matProj);
 }

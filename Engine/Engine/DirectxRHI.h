@@ -1,6 +1,7 @@
 
 #include "RHI.h"
 #include <d3d9.h>
+#include <d3dx9.h>
 
 class DirectXRHI : public RHI
 {
@@ -20,10 +21,11 @@ public:
 	bool InitializeGeometry();
 	void RenderGeometry();
 	void ReleaseGeometry();
+	void SetupMatrices();// Setup the world, view, and projection matrices
 
 private:
 	LPDIRECT3D9              pD3D = NULL;   // Direct 3D에 접근
-	LPDIRECT3DDEVICE9        pD3DDev = NULL;   // 비디오카드에 접근
+	LPDIRECT3DDEVICE9        pD3DDevice = NULL;   // 비디오카드에 접근
 
 	LPDIRECT3DVERTEXBUFFER9  pVB = NULL;
 		

@@ -138,7 +138,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
 		case WM_CREATE:
 		{			
-			gEngine = new S3DEngine(S3DEngine::OPENGL);
+			gEngine = new S3DEngine(S3DEngine::DIRECTX);
 			if (!gEngine)
 				return FALSE;
 			
