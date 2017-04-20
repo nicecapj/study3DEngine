@@ -6,7 +6,7 @@
 
 DirectXRHI::DirectXRHI()
 {	
-	
+	objects_;
 }
 
 
@@ -68,7 +68,8 @@ void DirectXRHI::Framemove(float delta)
 bool DirectXRHI::Render()
 {
 	// 배경을 검게칠한다
-	pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+	pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
+		D3DCOLOR_XRGB(0, 0, 255), 1.0f, 0);
 
 	pD3DDevice->BeginScene(); // 렌더 시작
 	
@@ -92,7 +93,8 @@ bool DirectXRHI::Restore()
 }
 
 bool DirectXRHI::InitializeGeometry()
-{
+{	
+#ifdef TEST_VERTEXBUFFER
 	if (FAILED(pD3DDevice->CreateVertexBuffer(50 * 2 * sizeof(CUSTOMVERTEX), 0, D3DFVF_CUSTOMVERTEX, D3DPOOL_DEFAULT, &pVB, NULL)))
 	{
 		return false;
@@ -109,15 +111,15 @@ bool DirectXRHI::InitializeGeometry()
 		pVertices[2 * i + 0].Position = D3DXVECTOR3(sinf(theta), -1.0f, cosf(theta));
 		pVertices[2 * i + 0].Normal = D3DXVECTOR3(sinf(theta), 0.0f, cosf(theta));
 		pVertices[2 * i + 0].Color = D3DCOLOR_RGBA(0xff, 0x00, 0x00, 0xff);
-		
-		pVertices[2 * i + 0].u = textureSet ? 1:0;
-		pVertices[2 * i + 0].v = textureSet ? 0:0;
+
+		pVertices[2 * i + 0].u = textureSet ? 1.0f : 0.0f;
+		pVertices[2 * i + 0].v = textureSet ? 0.0f : 0.0f;
 
 		pVertices[2 * i + 1].Position = D3DXVECTOR3(sinf(theta), 1.0f, cosf(theta));
 		pVertices[2 * i + 1].Normal = D3DXVECTOR3(sinf(theta), 0.0f, cosf(theta));
 		pVertices[2 * i + 1].Color = D3DCOLOR_RGBA(0x00, 0xff, 0x00, 0xff);
-		pVertices[2 * i + 0].u = textureSet ? 1 : 0;
-		pVertices[2 * i + 0].v = textureSet ? 1 : 1;
+		pVertices[2 * i + 0].u = textureSet ? 1.0f : 0.0f;
+		pVertices[2 * i + 0].v = textureSet ? 1.0f : 1.0f;
 		textureSet = !textureSet;
 	}
 
@@ -128,24 +130,80 @@ bool DirectXRHI::InitializeGeometry()
 		MessageBox(hWnd, L"Fail to Loading Texture", L"", MB_OK);
 		return false;
 	}
+#endif
+
+	S3DMesh* pMesh = new S3DMesh();
+	objects_.push_back(pMesh);
+
+	LPD3DXBUFFER pD3DXMtrlBuffer = nullptr;		
+	if (FAILED(D3DXLoadMeshFromX(L"sampleResource/tiger.x", D3DXMESH_SYSTEMMEM, pD3DDevice, NULL, &pD3DXMtrlBuffer, NULL, &(pMesh->MeterialCount), &(pMesh->Mesh))))
+	{
+		MessageBox(hWnd, L"Fail to Loading Object", L"", MB_OK);
+		return false;
+	}
+
+	D3DXMATERIAL* d3dxMaterials = (D3DXMATERIAL*)pD3DXMtrlBuffer->GetBufferPointer();
+	pMesh->Materials = new D3DMATERIAL9[pMesh->MeterialCount];
+	pMesh->Textures = new LPDIRECT3DTEXTURE9[pMesh->MeterialCount];
+
+	for (DWORD i = 0; i < pMesh->MeterialCount; ++i)
+	{
+		pMesh->Materials[i] = d3dxMaterials[i].MatD3D;
+		pMesh->Materials[i].Ambient = pMesh->Materials[i].Diffuse;	// Set the ambient color for the material (D3DX does not do this)
+
+		pMesh->Textures[i] = nullptr;
+
+		if (d3dxMaterials[i].pTextureFilename != NULL && lstrlenA(d3dxMaterials[i].pTextureFilename) > 0)
+		{
+			const CHAR* strPreFix = "sampleResource/";
+			CHAR strTexture[MAX_PATH];
+			strcpy_s(strTexture, MAX_PATH, strPreFix);
+			strcat_s(strTexture, d3dxMaterials[i].pTextureFilename);
+
+			if (FAILED(D3DXCreateTextureFromFileA(pD3DDevice, strTexture, &(pMesh->Textures[i]))))
+			{
+				MessageBox(hWnd, L"Fail to Loading Texture", L"", MB_OK);
+				return false;
+			}
+		}
+
+	}
+
+	pD3DXMtrlBuffer->Release();
 
 	return true;
 }
 
 void DirectXRHI::RenderGeometry()
 {
+#ifdef TEST_VERTEXBUFFER
 	//texture * diffuse
 	pD3DDevice->SetTexture(0, pTexture);
 	pD3DDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-	//pD3DDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTS_TEXTURE1);
-	//pD3DDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-	//pD3DDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
+	pD3DDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTS_TEXTURE1);
+	pD3DDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+	pD3DDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
 
 	pD3DDevice->SetStreamSource(0, pVB, 0, sizeof(CUSTOMVERTEX));
 	pD3DDevice->SetFVF(D3DFVF_CUSTOMVERTEX);
-	//pD3DDevice->DrawPrimitive(D3DPRIMITIVETYPE::D3DPT_TRIANGLELIST, 0, 1);
+	pD3DDevice->DrawPrimitive(D3DPRIMITIVETYPE::D3DPT_TRIANGLELIST, 0, 1);
 	pD3DDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2 * 50 - 2);
+#endif
+
+	for (auto obj : objects_)
+	{
+		for (DWORD i = 0; i < obj->MeterialCount; ++i)
+		{
+			pD3DDevice->SetMaterial(&(obj->Materials[i]));
+			pD3DDevice->SetTexture(0, obj->Textures[i]);
+			
+			if(obj->Mesh)
+			{
+				obj->Mesh->DrawSubset(i);
+			}			
+		}
+	}
 }
 
 void DirectXRHI::ReleaseGeometry()
@@ -161,6 +219,20 @@ void DirectXRHI::ReleaseGeometry()
 		pTexture->Release();
 		pTexture = nullptr;
 	}
+
+	for (auto it : objects_)
+	{
+		it->Mesh->Release();
+		delete[] it->Materials;
+
+		for (int i = 0; i < (int)it->MeterialCount ; ++i)
+		{									
+			it->Textures[i]->Release();
+		}
+		delete[] it->Textures;
+		delete it;
+	}
+	objects_.clear();
 }
 
 void DirectXRHI::SetupMatrices()

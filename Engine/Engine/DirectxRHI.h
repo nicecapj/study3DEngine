@@ -2,6 +2,15 @@
 #include "RHI.h"
 #include <d3d9.h>
 #include <d3dx9.h>
+#include <vector>
+
+struct S3DMesh
+{
+	LPD3DXMESH          Mesh = nullptr;
+	D3DMATERIAL9*       Materials = nullptr;
+	LPDIRECT3DTEXTURE9* Textures = nullptr;
+	DWORD               MeterialCount = 0;
+};
 
 class DirectXRHI : public RHI
 {
@@ -25,13 +34,19 @@ public:
 	void SetupLights();
 	void SetupMatrices();// Setup the world, view, and projection matrices
 
+	typedef std::vector<S3DMesh*> vecObjects;
+	typedef std::vector<S3DMesh*>::iterator vecObjectdIter;
+
 private:
 	HWND hWnd = nullptr;
 	LPDIRECT3D9              pD3D = nullptr;		  // Direct 3D에 접근
 	LPDIRECT3DDEVICE9        pD3DDevice = nullptr;   // 비디오카드에 접근
 
 	LPDIRECT3DVERTEXBUFFER9  pVB = nullptr;
+
 	LPDIRECT3DTEXTURE9       pTexture = nullptr;
+	
+	vecObjects     objects_;
 		
 	//struct CUSTOM_VERTEX
 	//{
