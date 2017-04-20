@@ -26,10 +26,12 @@ public:
 	void SetupMatrices();// Setup the world, view, and projection matrices
 
 private:
-	LPDIRECT3D9              pD3D = NULL;		  // Direct 3D에 접근
-	LPDIRECT3DDEVICE9        pD3DDevice = NULL;   // 비디오카드에 접근
+	HWND hWnd = nullptr;
+	LPDIRECT3D9              pD3D = nullptr;		  // Direct 3D에 접근
+	LPDIRECT3DDEVICE9        pD3DDevice = nullptr;   // 비디오카드에 접근
 
-	LPDIRECT3DVERTEXBUFFER9  pVB = NULL;
+	LPDIRECT3DVERTEXBUFFER9  pVB = nullptr;
+	LPDIRECT3DTEXTURE9       pTexture = nullptr;
 		
 	//struct CUSTOM_VERTEX
 	//{
@@ -42,6 +44,7 @@ private:
 		D3DXVECTOR3 Position; // The 3D position for the vertex
 		D3DXVECTOR3 Normal;   // The surface normal for the vertex
 		DWORD Color;
+		FLOAT u, v;
 	};
-	#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE)
+	#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1)
 };

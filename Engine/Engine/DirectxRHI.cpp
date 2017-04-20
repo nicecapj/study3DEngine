@@ -6,6 +6,7 @@
 
 DirectXRHI::DirectXRHI()
 {	
+	
 }
 
 
@@ -21,6 +22,8 @@ DirectXRHI::~DirectXRHI()
 
 bool DirectXRHI::Initialize(HWND hWnd)
 {
+	this->hWnd = hWnd;
+
 	// Direct 3D 사용
 	if (NULL == (pD3D = Direct3DCreate9(D3D_SDK_VERSION))) 
 		return false;
@@ -65,7 +68,7 @@ void DirectXRHI::Framemove(float delta)
 bool DirectXRHI::Render()
 {
 	// 배경을 검게칠한다
-	pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+	pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 
 	pD3DDevice->BeginScene(); // 렌더 시작
 	
@@ -99,34 +102,65 @@ bool DirectXRHI::InitializeGeometry()
 	if (FAILED(pVB->Lock(0, 0, (void**)&pVertices, 0)))
 		return false;
 
+	bool textureSet = false;
 	for (DWORD i = 0; i < 50; i++)
 	{
 		FLOAT theta = (2 * D3DX_PI * i) / (50 - 1);
 		pVertices[2 * i + 0].Position = D3DXVECTOR3(sinf(theta), -1.0f, cosf(theta));
 		pVertices[2 * i + 0].Normal = D3DXVECTOR3(sinf(theta), 0.0f, cosf(theta));
 		pVertices[2 * i + 0].Color = D3DCOLOR_RGBA(0xff, 0x00, 0x00, 0xff);
+		
+		pVertices[2 * i + 0].u = textureSet ? 1:0;
+		pVertices[2 * i + 0].v = textureSet ? 0:0;
 
 		pVertices[2 * i + 1].Position = D3DXVECTOR3(sinf(theta), 1.0f, cosf(theta));
 		pVertices[2 * i + 1].Normal = D3DXVECTOR3(sinf(theta), 0.0f, cosf(theta));
 		pVertices[2 * i + 1].Color = D3DCOLOR_RGBA(0x00, 0xff, 0x00, 0xff);
+		pVertices[2 * i + 0].u = textureSet ? 1 : 0;
+		pVertices[2 * i + 0].v = textureSet ? 1 : 1;
+		textureSet = !textureSet;
 	}
 
 	pVB->Unlock();
+
+	if (FAILED(D3DXCreateTextureFromFile(pD3DDevice, L"sampleResource/sample.bmp", &pTexture)))
+	{
+		MessageBox(hWnd, L"Fail to Loading Texture", L"", MB_OK);
+		return false;
+	}
 
 	return true;
 }
 
 void DirectXRHI::RenderGeometry()
 {
+	//texture * diffuse
+	pD3DDevice->SetTexture(0, pTexture);
+	pD3DDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+	//pD3DDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTS_TEXTURE1);
+	//pD3DDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+	//pD3DDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
+
+
 	pD3DDevice->SetStreamSource(0, pVB, 0, sizeof(CUSTOMVERTEX));
 	pD3DDevice->SetFVF(D3DFVF_CUSTOMVERTEX);
-	pD3DDevice->DrawPrimitive(D3DPRIMITIVETYPE::D3DPT_TRIANGLELIST, 0, 1);
+	//pD3DDevice->DrawPrimitive(D3DPRIMITIVETYPE::D3DPT_TRIANGLELIST, 0, 1);
+	pD3DDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2 * 50 - 2);
 }
 
 void DirectXRHI::ReleaseGeometry()
 {
-	pVB->Release();
-	pVB = nullptr;
+	if (pVB)
+	{
+		pVB->Release();
+		pVB = nullptr;
+	}
+
+	if (pTexture)
+	{
+		pTexture->Release();
+		pTexture = nullptr;
+	}
 }
 
 void DirectXRHI::SetupMatrices()
