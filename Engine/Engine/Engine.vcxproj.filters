@@ -51,6 +51,9 @@
     <ClInclude Include="DirectxRHI.h">
       <Filter>Engine\DirectX</Filter>
     </ClInclude>
+    <ClInclude Include="S3DMesh_Directx.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -70,6 +73,9 @@
     </ClCompile>
     <ClCompile Include="DirectxRHI.cpp">
       <Filter>Engine\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="S3DMesh_Directx.cpp">
+      <Filter>Engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

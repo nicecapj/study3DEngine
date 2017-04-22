@@ -148,6 +148,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="S3DMesh_Directx.h" />
     <ClInclude Include="DirectxRHI.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="OpenGLRHI.h" />
@@ -158,6 +159,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="S3DMesh_Directx.cpp" />
     <ClCompile Include="DirectxRHI.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="OpenGLRHI.cpp" />

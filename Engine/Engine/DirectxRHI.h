@@ -4,14 +4,7 @@
 #include <d3dx9.h>
 #include <vector>
 
-struct S3DMesh
-{
-	LPD3DXMESH          Mesh = nullptr;
-	D3DMATERIAL9*       Materials = nullptr;
-	LPDIRECT3DTEXTURE9* Textures = nullptr;
-	DWORD               MeterialCount = 0;
-};
-
+class S3DMesh;
 class DirectXRHI : public RHI
 {
 public:
