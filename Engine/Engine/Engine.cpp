@@ -19,6 +19,7 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 
+HDC gDC = NULL;
 S3DEngine* gEngine = nullptr;
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -138,11 +139,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
 		case WM_CREATE:
 		{			
-			gEngine = new S3DEngine(S3DEngine::DIRECTX);
+			gEngine = new S3DEngine(S3DEngine::OPENGL);
 			if (!gEngine)
-				return FALSE;
-			
-			if (!gEngine->Initialize(hWnd))
 				return FALSE;			
 		}
 		break;
@@ -166,9 +164,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_PAINT:
         {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
+            PAINTSTRUCT ps;            
+			gDC =  BeginPaint(hWnd, &ps);
             // TODO: Add any drawing code that uses hdc here...
+
+			if (gDC != NULL)
+			{
+				if (!gEngine->IsInitialized())
+				{
+					gEngine->Initialize(hWnd);
+				}
+			}
 
 			//TextOut(hdc, 10, 10, L"hello", strlen("hello"));
 

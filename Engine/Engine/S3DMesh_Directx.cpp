@@ -61,7 +61,8 @@ S3DMesh::~S3DMesh()
 bool S3DMesh::Render()
 {
 	for (DWORD i = 0; i < materialCount_; ++i)
-	{
+	{		
+		
 		pD3DDevice_->SetMaterial(&Materials[i]);
 		pD3DDevice_->SetTexture(0, textures_[i]);
 

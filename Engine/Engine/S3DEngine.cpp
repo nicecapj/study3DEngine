@@ -57,5 +57,11 @@ bool S3DEngine::Initialize(HWND hwnd)
 	if (!rhi_)
 		return false;
 
-	return rhi_->Initialize(hwnd);
+	isInitialized_ = rhi_->Initialize(hwnd);
+	return isInitialized_;
+}
+
+bool S3DEngine::IsInitialized()
+{
+	return isInitialized_;
 }

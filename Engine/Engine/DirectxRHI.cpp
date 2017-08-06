@@ -5,20 +5,23 @@
 #include <d3dx9math.h>
 #include "S3DMesh_Directx.h"
 
+#define SAFE_RELEASE(value) if(value != nullptr){ value->Release(); value = nullptr; }
+
 DirectXRHI::DirectXRHI()
 {	
 	objects_;
+	D3DXMatrixIdentity(&matWorld);
+	D3DXMatrixIdentity(&matView);
+	D3DXMatrixIdentity(&matProj);
 }
 
 
 DirectXRHI::~DirectXRHI()
 {
 	ReleaseGeometry();
-
-	pD3DDevice->Release();
-	pD3DDevice = nullptr;
-	pD3D->Release();
-	pD3D = nullptr;
+	
+	SAFE_RELEASE(pD3DDevice);
+	SAFE_RELEASE(pD3D);	
 }
 
 bool DirectXRHI::Initialize(HWND hWnd)
@@ -94,7 +97,19 @@ bool DirectXRHI::Render()
 
 bool DirectXRHI::Restore()
 {
-	//throw std::logic_error("The method or operation is not implemented.");
+	//throw std::logic_error("The method or operation is not implemented.");	
+
+	if (pD3dxEffect_ != nullptr)
+		pD3dxEffect_->OnResetDevice();
+
+	return true;
+}
+
+bool DirectXRHI::Invalidate()
+{
+	if (pD3dxEffect_ != nullptr)
+		pD3dxEffect_->OnResetDevice();
+
 	return true;
 }
 
@@ -140,6 +155,68 @@ bool DirectXRHI::InitializeGeometry()
 	S3DMesh* pMesh = new S3DMesh(L"sampleResource/tiger.x", pD3DDevice, hWnd);
 	objects_.push_back(pMesh);	
 
+	HRESULT hr;
+
+	//vertex decl
+	//typedef struct _D3DVERTEXELEMENT9
+	//{
+	//	WORD    Stream;     // Stream index
+	//	WORD    Offset;     // Offset in the stream in bytes
+	//	BYTE    Type;       // Data type
+	//	BYTE    Method;     // Processing method
+	//	BYTE    Usage;      // Semantics
+	//	BYTE    UsageIndex; // Semantic index
+	//} D3DVERTEXELEMENT9, *LPD3DVERTEXELEMENT9;
+	//D3DVERTEXELEMENT9 decl[] =
+	//{
+	//	{0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+	//	D3DDECL_END()
+	//};
+	D3DVERTEXELEMENT9 decl[MAX_FVF_DECL_SIZE];
+	D3DXDeclaratorFromFVF(D3DFVF_CUSTOMVERTEX, decl);
+	hr = pD3DDevice->CreateVertexDeclaration(decl, &pVertexDecl);
+	if (FAILED(hr))
+	{
+		return false;
+}
+
+	LPD3DXBUFFER pCode;
+	//shader
+	LPD3DXBUFFER pErrorBuffer = nullptr;
+	hr = D3DXAssembleShaderFromFile(L"sampleResource/vertex.sh", NULL, NULL, 0, &pCode, &pErrorBuffer);
+	if (FAILED(hr))
+	{
+		SAFE_RELEASE(pErrorBuffer);
+		return false;
+	}
+	SAFE_RELEASE(pErrorBuffer);
+
+#ifdef USE_VS_PS
+/*	hr = pD3DDevice->CreateVertexShader((DWORD*)pCode->GetBufferPointer(), &pVertexShader);
+	pCode->Release();
+	if (pCode)
+	{
+		pCode->Release();
+		pCode = nullptr;
+	}
+	if (FAILED(hr))
+	{
+		return false;
+	}*/	
+#endif
+
+	if (FAILED(D3DXCreateEffectFromFile(pD3DDevice, L"sampleResource/hlsl.fx", NULL, NULL, 0, NULL, &pD3dxEffect_, &pErrorBuffer)))
+	{
+		MessageBox(hWnd, L"Fail to Loading Effect file", L"", MB_OK);		
+	}
+	else
+	{
+		hTechnique_ = pD3dxEffect_->GetTechniqueByName("TShader");
+		hWvp_ = pD3dxEffect_->GetParameterByName(NULL, "WVP");
+	}
+	
+	SAFE_RELEASE(pErrorBuffer);
+
 	return true;
 }
 
@@ -162,35 +239,52 @@ void DirectXRHI::RenderGeometry()
 
 	for (auto obj : objects_)
 	{
+		if (pD3dxEffect_)
+		{
+			//shader
+			pD3dxEffect_->SetTechnique(hTechnique_);
+			pD3dxEffect_->Begin(NULL, 0);
+			pD3dxEffect_->BeginPass(0);
+
+			//shader constant
+			matWVP = matWorld * matView * matProj;
+			pD3dxEffect_->SetMatrix(hWvp_, &matWVP);
+
+			pD3dxEffect_->SetTexture("Tex", obj->GetTexture(0));
+
+			//render
+			pD3DDevice->SetVertexDeclaration(pVertexDecl);
+			//pD3DDevice->SetVertexShader(pVertexShader);
+			//pD3DDevice->SetPixelShader(pPixelShader);
+
+			pD3dxEffect_->End();
+		}
+
 		obj->Render();
 	}
 }
 
 void DirectXRHI::ReleaseGeometry()
 {
-	if (pVB)
-	{
-		pVB->Release();
-		pVB = nullptr;
-	}
-
-	if (pTexture)
-	{
-		pTexture->Release();
-		pTexture = nullptr;
-	}
+	SAFE_RELEASE(pVB);
+	SAFE_RELEASE(pTexture);
 
 	for (auto it : objects_)
 	{
 		delete it;
 	}
 	objects_.clear();
+
+	//SAFE_RELEASE(pVertexShader);
+	//SAFE_RELEASE(pPixelShader);
+	//SAFE_RELEASE(pVertexDecl);
+	SAFE_RELEASE(pD3dxEffect_);	
 }
 
 void DirectXRHI::SetupMatrices()
 {
 	// For our world matrix, we will just rotate the object about the y-axis.
-	D3DXMATRIXA16 matWorld;
+	//D3DXMATRIXA16 matWorld;
 
 	// Set up the rotation matrix to generate 1 full rotation (2*PI radians) 
 	// every 1000 ms. To avoid the loss of precision inherent in very high 
@@ -206,6 +300,7 @@ void DirectXRHI::SetupMatrices()
 	// a point to lookat, and a direction for which way is up. Here, we set the
 	// eye five units back along the z-axis and up three units, look at the
 	// origin, and define "up" to be in the y-direction.
+	//D3DXMATRIXA16 matView;
 	D3DXVECTOR3 vEyePt(0.0f, 3.0f, -5.0f);
 	D3DXVECTOR3 vLookatPt(0.0f, 0.0f, 0.0f);
 	D3DXVECTOR3 vUpVec(0.0f, 1.0f, 0.0f);
@@ -219,7 +314,7 @@ void DirectXRHI::SetupMatrices()
 	// a perpsective transform, we need the field of view (1/4 pi is common),
 	// the aspect ratio, and the near and far clipping planes (which define at
 	// what distances geometry should be no longer be rendered).
-	D3DXMATRIXA16 matProj;
+	//D3DXMATRIXA16 matProj;
 	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, 1.0f, 1.0f, 100.0f);
 	pD3DDevice->SetTransform(D3DTS_PROJECTION, &matProj);
 }

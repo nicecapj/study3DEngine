@@ -10,6 +10,7 @@ public:
 		DIRECTX,
 	};
 		
+	bool IsInitialized();
 	bool Initialize(HWND hwnd);
 	void Process();
 	bool Restore();
@@ -22,5 +23,6 @@ protected:
 	RHI* rhi_ = nullptr;	
 
 private:
+	bool isInitialized_ = false;
 	
 };

@@ -12,12 +12,10 @@ public:
 	~DirectXRHI();
 
 	virtual bool Initialize(HWND hwnd) override;
-
 	virtual void Framemove(float delta) override;
-
 	virtual bool Render() override;
-
 	virtual bool Restore() override;
+	virtual bool Invalidate() override;	
 
 
 	bool InitializeGeometry();
@@ -26,6 +24,7 @@ public:
 		
 	void SetupLights();
 	void SetupMatrices();// Setup the world, view, and projection matrices
+	
 
 	typedef std::vector<S3DMesh*> vecObjects;
 	typedef std::vector<S3DMesh*>::iterator vecObjectdIter;
@@ -40,13 +39,9 @@ private:
 	LPDIRECT3DTEXTURE9       pTexture = nullptr;
 	
 	vecObjects     objects_;
-		
-	//struct CUSTOM_VERTEX
-	//{
-	//	FLOAT X, Y, Z, RHW;
-	//	DWORD Color;
-	//};
 
+
+	//fixed pipeline
 	struct CUSTOMVERTEX
 	{
 		D3DXVECTOR3 Position; // The 3D position for the vertex
@@ -55,4 +50,21 @@ private:
 		FLOAT u, v;
 	};
 	#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1)
+
+
+	D3DXMATRIXA16 matWorld;
+	D3DXMATRIXA16 matView;
+	D3DXMATRIXA16 matProj;
+
+	D3DXMATRIXA16 matWVP;
+
+	//old shader style
+	//	LPDIRECT3DVERTEXSHADER9      pVertexShader = nullptr;
+		LPDIRECT3DVERTEXDECLARATION9 pVertexDecl = nullptr;
+	//	LPDIRECT3DPIXELSHADER9       pPixelShader = nullptr;
+
+	//shader
+	LPD3DXEFFECT pD3dxEffect_ = nullptr;
+	D3DXHANDLE hWvp_ = nullptr;
+	D3DXHANDLE hTechnique_ = nullptr;
 };
