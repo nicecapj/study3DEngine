@@ -24,7 +24,7 @@ DirectXRHI::~DirectXRHI()
 	SAFE_RELEASE(pD3D);	
 }
 
-bool DirectXRHI::Initialize(HWND hWnd)
+bool DirectXRHI::Initialize(HWND hWnd, int width, int height)
 {
 	this->hWnd = hWnd;
 

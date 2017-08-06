@@ -172,7 +172,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				if (!gEngine->IsInitialized())
 				{
-					gEngine->Initialize(hWnd);
+					gEngine->Initialize(hWnd, 640, 480);
 				}
 			}
 

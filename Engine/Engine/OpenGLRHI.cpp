@@ -21,7 +21,7 @@ OpenGLRHI::~OpenGLRHI()
 	wglDeleteContext(hRC_);
 }
 
-bool OpenGLRHI::Initialize(HWND hwnd)
+bool OpenGLRHI::Initialize(HWND hwnd, int width, int height)
 {	
 	hWnd_ = hwnd;
 	hDC_ = GetDC(hWnd_);
@@ -42,6 +42,8 @@ bool OpenGLRHI::Initialize(HWND hwnd)
 			glDepthFunc(GL_LEQUAL);			
 
 			glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+			Resize(width, height);
 		}
 		else
 		{			
@@ -56,19 +58,19 @@ bool OpenGLRHI::Initialize(HWND hwnd)
 	return true;
 }
 
-void OpenGLRHI::TestGlutRender()
-{
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glBegin(GL_TRIANGLES);
-
-	glVertex2f(0.0, 0.5);
-	glVertex2f(-0.5, -0.5);
-	glVertex2f(0.5, -0.5);
-
-	glEnd();
-	glFlush();
-}
+//void OpenGLRHI::TestGlutRender()
+//{
+//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//
+//	glBegin(GL_TRIANGLES);
+//
+//	glVertex2f(0.0, 0.5);
+//	glVertex2f(-0.5, -0.5);
+//	glVertex2f(0.5, -0.5);
+//
+//	glEnd();
+//	glFlush();
+//}
 
 void OpenGLRHI::Framemove(float delta)
 {
@@ -79,16 +81,14 @@ bool OpenGLRHI::Render()
 {
 	if (hRC_)
 	{
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		DrawTestTriangle();		
+				
+		
+		DrawTestQuad();
 
-		glBegin(GL_TRIANGLES);
-
-		glVertex2f(0.0, 0.5);
-		glVertex2f(-0.5, -0.5);
-		glVertex2f(0.5, -0.5);
-
-		glEnd();
-		glFlush();
+		//glFlush();
 		
 		SwapBuffers(hDC_);
 
@@ -97,7 +97,7 @@ bool OpenGLRHI::Render()
 	return false;
 }
 
-void OpenGLRHI::CheckPixelFormat(HDC dc, int colorBit)
+void OpenGLRHI::CheckPixelFormat(HDC dc, BYTE colorBit)
 {
 	static    PIXELFORMATDESCRIPTOR ppfd =                   
 	{
@@ -154,9 +154,13 @@ void OpenGLRHI::TempErrorMessage(HWND hwnd)
 }
 
 void OpenGLRHI::Resize(int width, int height)
-{
+{	
 	if (height == 0)
 		height = 1;
+
+	windowWidth_ = width;
+	windowHeight_ = height;
+
 	glViewport(0, 0, windowWidth_, windowHeight_);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -165,6 +169,46 @@ void OpenGLRHI::Resize(int width, int height)
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+}
+
+// watch diraction
+//  . 
+//        .
+//        .
+//  .		
+void OpenGLRHI::DrawTestQuad()
+{
+	glLoadIdentity();	
+	//glTranslatef(3.0f, 0.0f, 0.0f);
+	//glRotatef(30.0f, 0.0f, 0.0f, 1.0f);
+
+	glBegin(GL_QUADS);	
+	glVertex3f(-1.0f, 1.0f, 0.0f);	//lt
+	glVertex3f(1.0f, 1.0f, 0.0f);	//rt
+	glVertex3f(1.0f, -1.0f, 0.0f);	//rl
+	glVertex3f(-1.0f, -1.0f, 0.0f);	//ll
+
+	glEnd();
+}
+
+void OpenGLRHI::DrawTestTriangle()
+{
+	glLoadIdentity();
+	glTranslatef(-1.5f, 0.0f, -6.0f);
+	glRotatef(30.0f, 0.0f, 0.0f, 1.0f);
+
+	glBegin(GL_TRIANGLES);
+
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glVertex2f(0.0, 0.5);
+	
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glVertex2f(-0.5, -0.5);
+	
+	glColor3f(1.0f, 0.0f, 1.0f);
+	glVertex2f(0.5, -0.5);
+
+	glEnd();
 }
 
 bool OpenGLRHI::Invalidate()

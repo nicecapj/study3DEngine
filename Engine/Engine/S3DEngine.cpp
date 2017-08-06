@@ -52,12 +52,12 @@ bool S3DEngine::Restore()
 	return rhi_->Restore();
 }
 
-bool S3DEngine::Initialize(HWND hwnd)
+bool S3DEngine::Initialize(HWND hwnd, int width, int height)
 {
 	if (!rhi_)
 		return false;
 
-	isInitialized_ = rhi_->Initialize(hwnd);
+	isInitialized_ = rhi_->Initialize(hwnd, width, height);
 	return isInitialized_;
 }
 

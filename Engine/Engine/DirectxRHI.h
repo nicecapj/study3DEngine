@@ -11,7 +11,7 @@ public:
 	DirectXRHI();
 	~DirectXRHI();
 
-	virtual bool Initialize(HWND hwnd) override;
+	virtual bool Initialize(HWND hwnd, int width, int height) override;
 	virtual void Framemove(float delta) override;
 	virtual bool Render() override;
 	virtual bool Restore() override;

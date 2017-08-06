@@ -11,7 +11,7 @@ public:
 	};
 		
 	bool IsInitialized();
-	bool Initialize(HWND hwnd);
+	bool Initialize(HWND hwnd, int width, int height);
 	void Process();
 	bool Restore();
 

@@ -8,14 +8,13 @@ public:
 	OpenGLRHI();	
 	~OpenGLRHI();
 
-	virtual bool Initialize(HWND hwnd) override;
+	virtual bool Initialize(HWND hwnd, int width, int height) override;
 	virtual void Framemove(float delta) override;
 	virtual bool Render() override;
 	virtual bool Restore() override;
 	virtual bool Invalidate() override;	
-	
-	static void TestGlutRender();
-	void CheckPixelFormat(HDC dc, int colorBit);
+		
+	void CheckPixelFormat(HDC dc, BYTE colorBit);
 
 	
 
@@ -23,6 +22,8 @@ public:
 
 private:
 	void Resize(int width, int height);
+	void DrawTestQuad();
+	void DrawTestTriangle();
 
 	HWND hWnd_;
 	HDC hDC_;
