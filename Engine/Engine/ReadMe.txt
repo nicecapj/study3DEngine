@@ -2,10 +2,12 @@
     WIN32 APPLICATION : Engine Project Overview
 ========================================================================
 
-AppWizard has created this Engine application for you.
+fbx sdk
+https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0
 
-This file contains a summary of what you will find in each of the files that
-make up your Engine application.
+fbx : Loading 3D models FBX files with anmimations (opengl c++) using glut lib and fbx SDK ..
+https://github.com/sho3la/FBX-Loader-OpenGL-C-
+
 
 
 Engine.vcxproj

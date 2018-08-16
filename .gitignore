@@ -2,3 +2,16 @@ Engine/Engine/Debug/
 Engine/Engine.VC.VC.opendb
 Engine/Engine.VC.db
 Engine/ipch/
+/Engine/Engine/x64/Debug/vc141.pdb
+/Engine/Engine/x64/Debug/vc141.idb
+/Engine/Engine/x64/Debug/stdafx.obj
+/Engine/Engine/x64/Debug/RHI.obj
+/Engine/Engine/x64/Debug/Engine.tlog/unsuccessfulbuild
+/Engine/Engine/x64/Debug/Engine.tlog/Engine.lastbuildstate
+/Engine/Engine/x64/Debug/Engine.tlog/CL.write.1.tlog
+/Engine/Engine/x64/Debug/Engine.tlog/CL.read.1.tlog
+/Engine/Engine/x64/Debug/Engine.tlog/CL.command.1.tlog
+/Engine/Engine/x64/Debug/Engine.pch
+/Engine/Engine/x64/Debug/Engine.obj
+/Engine/Engine/x64/Debug/Engine.log
+/Engine/.vs/Engine/v15

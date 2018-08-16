@@ -52,7 +52,7 @@
       <Filter>Engine\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="S3DMesh_Directx.h">
-      <Filter>Engine</Filter>
+      <Filter>Engine\DirectX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -75,7 +75,7 @@
       <Filter>Engine\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="S3DMesh_Directx.cpp">
-      <Filter>Engine</Filter>
+      <Filter>Engine\DirectX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
